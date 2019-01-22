@@ -83,19 +83,21 @@ services:
     ports:
       - "8082:8000"
     environment:
-      - SCHEMAREGISTRY_URL=http://localhost:8081
+      SCHEMAREGISTRY_URL: "http://localhost:8081"
     networks:
       - kafka
 
-  ext_postgres:
-    container_name: ext_postgres
-    hostname: ext_postgres
+  postgres:
+    container_name: postgres
+    hostname: postgres
     image: postgres:9.6.11
     ports:
-     - 5432:5432
+      - "5432:5432"
     environment:
-     - POSTGRES_USER=postgres
-     - POSTGRES_PASSWORD=postgres
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - ./init_db:/docker-entrypoint-initdb.d
     networks:
       - kafka
 

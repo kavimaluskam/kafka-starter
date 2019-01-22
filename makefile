@@ -7,6 +7,8 @@ ZK="zookeeper:2181"
 SCHEMA_REGISTRY="http://schema_registry:8081"
 BROKERS="kafka1:9092,kafka2:9092"
 
+SQL_QUERY = "SELECT '\''users'\'' as column, count(1) from users UNION SELECT '\''movies'\'' as column, count(1) from movies UNION SELECT '\''ratings'\'' as column, count(1) from ratings;"
+
 up:
 	docker-compose -f $(DOCKER_COMPOSE_FILE_PATH) up -d
 
@@ -58,3 +60,6 @@ connect-shell:
 		-e BROKERS=$(BROKERS) \
 		--network=$(DOCKER_NETWORK) \
 		$(KAFKA_CONNECT_TAG) /bin/bash
+
+db-preview:
+	docker exec postgres bash -c 'psql -U postgres postgres -c $(SQL_QUERY)'
