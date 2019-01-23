@@ -16,6 +16,10 @@ This directory contains all resources to setup and play with Apache Kafka.
 
 WIP
 
+## CLI cheat sheet
+
+Checkout [`cheatsheet.md`](./cheatsheet.md)
+
 ## TODO
 
 - Sample consumer / producer
