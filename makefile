@@ -1,3 +1,8 @@
+DOCKER_HUB="" # Fill with your docker hub repo
+
+KAFDROP_DIR="docker/kafdrop"
+KAFDROP_TAG="kafdrop"
+
 KAFKA_CONNECT_TAG="confluentinc/cp-kafka-connect:5.1.0"
 
 DOCKER_COMPOSE_FILE_PATH="docker/docker-compose.yml"
@@ -8,6 +13,20 @@ SCHEMA_REGISTRY="http://schema_registry:8081"
 BROKERS="kafka1:9092,kafka2:9092"
 
 SQL_QUERY = "SELECT '\''users'\'' as column, count(1) from users UNION SELECT '\''movies'\'' as column, count(1) from movies UNION SELECT '\''ratings'\'' as column, count(1) from ratings;"
+
+build-images:
+	# kafdrop docker
+	docker build -t $(KAFDROP_TAG) $(KAFDROP_DIR)
+
+push-images:
+	# kafdrop docker
+	docker tag $(KAFDROP_TAG) $(DOCKER_HUB)/$(KAFDROP_TAG)
+	docker push $(DOCKER_HUB)/$(KAFDROP_TAG)
+
+pull-images:
+	# kafdrop docker
+	docker pull $(DOCKER_HUB)/$(KAFDROP_TAG)
+	docker tag $(KAFDROP_TAG) $(DOCKER_HUB)/$(KAFDROP_TAG)
 
 up:
 	docker-compose -f $(DOCKER_COMPOSE_FILE_PATH) up -d

@@ -54,11 +54,13 @@ services:
   kafdrop:
     container_name: kafdrop
     hostname: kafdrop
-    image: thomsch98/kafdrop
+    image: kavimaluskam/kafdrop
     ports:
       - "9000:9000"
     environment:
       ZK_HOSTS: "zookeeper:2181"
+      LISTEN: "9000"
+      SCHEMA_REGISTRY_URL: "http://schema_registry:8081"
     networks:
       - kafka
 

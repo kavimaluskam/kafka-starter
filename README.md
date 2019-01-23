@@ -18,8 +18,4 @@ WIP
 
 ## TODO
 
-- Init postgres demo data
-
-- Postgres connect
-
 - Sample consumer / producer
