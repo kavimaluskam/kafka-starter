@@ -1,7 +1,11 @@
-DOCKER_HUB="" # Fill with your docker hub repo
+# Fill with your docker hub repo
+DOCKER_HUB=""
 
 KAFDROP_DIR="docker/kafdrop"
 KAFDROP_TAG="kafdrop"
+
+POSTGRES_DIR="docker/postgres-demo"
+POSTGRES_TAG="postgres-demo"
 
 KAFKA_CONNECT_TAG="confluentinc/cp-kafka-connect:5.1.0"
 
@@ -17,16 +21,24 @@ SQL_QUERY = "SELECT '\''users'\'' as column, count(1) from users UNION SELECT '\
 build-images:
 	# kafdrop docker
 	docker build -t $(KAFDROP_TAG) $(KAFDROP_DIR)
+	# postgres docker
+	docker build -t $(POSTGRES_TAG) $(POSTGRES_DIR)
 
 push-images:
 	# kafdrop docker
 	docker tag $(KAFDROP_TAG) $(DOCKER_HUB)/$(KAFDROP_TAG)
 	docker push $(DOCKER_HUB)/$(KAFDROP_TAG)
+	# postgres docker
+	docker tag $(POSTGRES_TAG) $(DOCKER_HUB)/$(POSTGRES_TAG)
+	docker push $(DOCKER_HUB)/$(POSTGRES_TAG)
 
 pull-images:
 	# kafdrop docker
 	docker pull $(DOCKER_HUB)/$(KAFDROP_TAG)
 	docker tag $(KAFDROP_TAG) $(DOCKER_HUB)/$(KAFDROP_TAG)
+	# postgres docker
+	docker pull $(DOCKER_HUB)/$(POSTGRES_TAG)
+	docker tag $(POSTGRES_TAG) $(DOCKER_HUB)/$(POSTGRES_TAG)
 
 up:
 	docker-compose -f $(DOCKER_COMPOSE_FILE_PATH) up -d
