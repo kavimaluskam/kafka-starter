@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Create ECS Cluster for Hosting Kafka Starter Services."
+
+Parameters:
+  ExecutionRoleArn:
+    Description: ARN off the task execution role in AWS ECS and docker
+    Type: String
+    Default: ""
+
+  ImageName:
+    Description: Security Group under VPC
+    Type: String
+    Default: "kavimaluskam/kafka-connect-demo"
+
+Resources:
+  KafkaConnectTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 128
+      ExecutionRoleArn: arn:aws:iam::714417329994:role/ECSTaskExecutionRole
+      Family: data-kafka-starter
+      Memory: 1024
+      RequiresCompatibilities:
+        - "EC2"
+      TaskRoleArn: arn:aws:iam::714417329994:role/ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: kafka_connect
+          Hostname: kafka-connect
+          Image: !Ref ImageName
+          Cpu: 128
+          Memory: 1024
+          Essential: "true"
+
+  KafkaConnectService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: data-kafka-starter
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      PlacementStrategies:
+      - Type: spread
+        Field: attribute:ecs.availability-zone
+      - Type: spread
+        Field: instanceId
+      ServiceName: kafka-connect-service
+      TaskDefinition: !Ref KafkaConnectTask
+    DependsOn: KafkaConnectTask
