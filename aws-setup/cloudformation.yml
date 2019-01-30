@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Create ECS Cluster for Hosting Kafka Starter Services."
+
+Parameters:
+  BootstrapServer:
+    Description: Bootstrap Server String
+    Type: String
+
+  ZookeeperServer:
+    Description: Zookeeper Server String
+    Type: String
+
+  SubnetID:
+    Description: AWS SubnetID for the ec2 instace
+    Type: String
+
+  ExecutionRoleArn:
+    Description: ARN off the task execution role in AWS ECS and docker
+    Type: String
+    Default: ""
+
+  SecurityGroupId:
+    Description: Security Group under VPC
+    Type: String
+    Default: ""
+
+  EC2KeyName:
+    Description: EC2 SSH key
+    Type: String
+    Default: ""
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: data-kafka-starter
+
+  Server:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: ami-09568291a9d6c804c # amazon-ecs-optimized
+      InstanceType: "t2.medium"
+      KeyName: !Ref EC2KeyName
+      SubnetId: !Ref SubnetID
+      SecurityGroupIds:
+        - !Ref SecurityGroupId
+      BlockDeviceMappings:
+        - DeviceName: "/dev/xvda"
+          Ebs:
+            VolumeType: "gp2"
+            VolumeSize: "8"
+        - DeviceName: "/dev/xvdcz"
+          Ebs:
+            VolumeType: "gp2"
+            VolumeSize: "22"
+      IamInstanceProfile: ecsInstanceRole
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash"
+              - "echo ECS_CLUSTER=data-kafka-starter >> /etc/ecs/ecs.config"
+              - "echo ECS_BACKEND_HOST= >> /etc/ecs/ecs.config"
+      Tags:
+        - Key: Name
+          Value: data-kafka-starter
+
+  ServerEIP:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      InstanceId: !Ref Server
+      Domain: vpc
+
+  KafdropTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 128
+      ExecutionRoleArn: !Ref ExecutionRoleArn
+      Family: data-kafka-starter
+      Memory: 1024
+      NetworkMode: host
+      RequiresCompatibilities:
+        - "EC2"
+      TaskRoleArn: !Ref ExecutionRoleArn
+      ContainerDefinitions:
+        - Name: kafdrop
+          Image: "kavimaluskam/kafdrop"
+          Cpu: 10
+          Memory: 1024
+          Essential: "true"
+          PortMappings:
+            - ContainerPort: 9000
+              HostPort: 9000
+              Protocol: TCP
+          Environment:
+            - Name: ZK_HOSTS
+              Value: !Ref ZookeeperServer
+            - Name: LISTEN
+              Value: 9000
+            - Name: SCHEMA_REGISTRY_URL
+              Value: ""
+
+  KafdropService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: data-kafka-starter
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      PlacementStrategies:
+      - Type: spread
+        Field: attribute:ecs.availability-zone
+      - Type: spread
+        Field: instanceId
+      ServiceName: kafdrop-service
+      TaskDefinition: !Ref KafdropTask
+    DependsOn: KafdropTask
+
+  PostgresTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: 128
+      ExecutionRoleArn: !Ref ExecutionRoleArn
+      Family: data-kafka-starter
+      NetworkMode: host
+      Memory: 1024
+      RequiresCompatibilities:
+        - "EC2"
+      TaskRoleArn: !Ref ExecutionRoleArn
+      ContainerDefinitions:
+        - Name: postgres
+          Image: "kavimaluskam/postgres-demo"
+          Cpu: 10
+          Memory: 1024
+          Essential: "true"
+          PortMappings:
+            - ContainerPort: 5432
+              HostPort: 5432
+              Protocol: TCP
+          Environment:
+            - Name: POSTGRES_USER
+              Value: postgres
+            - Name: POSTGRES_PASSWORD
+              Value: postgres
+
+  PostgresService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: data-kafka-starter
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      DesiredCount: 1
+      PlacementStrategies:
+      - Type: spread
+        Field: attribute:ecs.availability-zone
+      - Type: spread
+        Field: instanceId
+      ServiceName: postgres-service
+      TaskDefinition: !Ref PostgresTask
+    DependsOn: PostgresTask
