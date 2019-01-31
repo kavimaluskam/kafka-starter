@@ -64,25 +64,6 @@ avro-shell:
 		--network=$(DOCKER_NETWORK) \
 		confluentinc/cp-schema-registry:5.1.0 /bin/bash
 
-consumer-shell:
-	docker run -it --rm \
-		-v `pwd`/consumer:/run \
-		-w /run \
-		-e ZK=$(ZK) \
-		-e BROKERS=$(BROKERS) \
-		--network=$(DOCKER_NETWORK) \
-		$(KAFKA_CLIENT_TAG) /bin/bash
-
-streams-shell:
-	docker run -it --rm \
-		-v `pwd`/streams:/run \
-		-w /run \
-		-e ZK=$(ZK) \
-		-e BROKERS=$(BROKERS) \
-		-e SCHEMA_REGISTRY=$(SCHEMA_REGISTRY) \
-		--network=$(DOCKER_NETWORK) \
-		$(KAFKA_STREAMS_CLIENT_TAG) /bin/bash
-
 connect-shell:
 	docker run -it --rm \
 		-v `pwd`/connect:/run \
