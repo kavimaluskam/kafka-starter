@@ -2,6 +2,8 @@
 
 This directory contains all resources for Apache Kafka, in the medium blog post.
 
+For setup with kubenetes, please visit [Kafka on Kubernetes](https://github.com/kavimaluskam/kafka-k8s)
+
 ## Directory Structure
 
 ```sh
